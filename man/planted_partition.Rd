@@ -13,8 +13,9 @@ planted_partition(
   a = NULL,
   b = NULL,
   pi = rep(1/k, k),
-  edge_distribution = c("poisson", "bernoulli"),
-  sort_nodes = TRUE
+  sort_nodes = TRUE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE
 )
 }
 \arguments{
@@ -63,16 +64,24 @@ to one, as they will be normalized internally.
 Must match the dimensions of \code{B} or \code{k}. Defaults to
 \code{rep(1 / k, k)}, or a balanced blocks.}
 
-\item{edge_distribution}{Either \code{"poisson"} or \code{"bernoulli"}. The
-default is \code{"poisson"}, in which case the SBM can be a
-multigraph, i.e. multiple edges between the same two nodes
-are allowed. If \code{edge_distribution == "bernoulli"} only a
-single edge is allowed between any pair of nodes. See Section 2.3
-of Rohe et al (2017) for details.}
-
 \item{sort_nodes}{Logical indicating whether or not to sort the nodes
-so that they are grouped by block. Useful for plotting.
+so that they are grouped by block and by \code{theta}. Useful for plotting.
 Defaults to \code{TRUE}.}
+
+\item{poisson_edges}{Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to \code{TRUE}. When \code{FALSE}, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when \code{FALSE}, we assume that \code{S} specifies a desired between-factor
+connection probability, and back-transform this \code{S} to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.}
+
+\item{allow_self_loops}{Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to \code{TRUE}. When \code{FALSE}, sampling proceeds allowing
+self-loops, and these are then removed after the fact.}
 }
 \value{
 An \code{undirected_planted_partition} S3 object, which is a subclass
@@ -88,7 +97,7 @@ To specify a planted partition model, you must specify
 the number of nodes (via \code{n}), the mixing matrix (optional, either via
 \code{within_block/between_block} or \code{a/b}),
 and the relative block probabilites (optional, via \code{pi}).
-We provide sane defaults for most of these options to enable
+We provide defaults for most of these options to enable
 rapid exploration, or you can invest the effort
 for more control over the model parameters. We \strong{strongly recommend}
 setting the \code{expected_degree} or \code{expected_density} argument
@@ -121,11 +130,17 @@ lazy_pp
 \seealso{
 Other stochastic block models: 
 \code{\link{dcsbm}()},
+\code{\link{directed_dcsbm}()},
+\code{\link{mmsbm}()},
+\code{\link{overlapping_sbm}()},
 \code{\link{sbm}()}
 
 Other undirected graphs: 
+\code{\link{chung_lu}()},
 \code{\link{dcsbm}()},
 \code{\link{erdos_renyi}()},
+\code{\link{mmsbm}()},
+\code{\link{overlapping_sbm}()},
 \code{\link{sbm}()}
 }
 \concept{stochastic block models}

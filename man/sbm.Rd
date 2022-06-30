@@ -10,8 +10,9 @@ sbm(
   B = NULL,
   ...,
   pi = rep(1/k, k),
-  edge_distribution = c("poisson", "bernoulli"),
-  sort_nodes = TRUE
+  sort_nodes = TRUE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE
 )
 }
 \arguments{
@@ -28,7 +29,7 @@ or \code{B}, but not both.}
 
 \item{B}{(mixing matrix) A \code{k} by \code{k} matrix of block connection
 probabilities. The probability that a node in block \code{i} connects
-to a node in community \code{j} is \code{Poisson(B[i, j])}. Must be square
+to a node in community \code{j} is \code{Poisson(B[i, j])}. Must be
 a square matrix. \code{matrix} and \code{Matrix} objects are both
 acceptable. If \code{B} is not symmetric, it will be
 symmetrized via the update \code{B := B + t(B)}. Defaults to \code{NULL}.
@@ -53,29 +54,34 @@ to one, as they will be normalized internally.
 Must match the dimensions of \code{B} or \code{k}. Defaults to
 \code{rep(1 / k, k)}, or a balanced blocks.}
 
-\item{edge_distribution}{Either \code{"poisson"} or \code{"bernoulli"}. The
-default is \code{"poisson"}, in which case the SBM can be a
-multigraph, i.e. multiple edges between the same two nodes
-are allowed. If \code{edge_distribution == "bernoulli"} only a
-single edge is allowed between any pair of nodes. See Section 2.3
-of Rohe et al (2017) for details.}
-
 \item{sort_nodes}{Logical indicating whether or not to sort the nodes
-so that they are grouped by block. Useful for plotting.
+so that they are grouped by block and by \code{theta}. Useful for plotting.
 Defaults to \code{TRUE}.}
+
+\item{poisson_edges}{Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to \code{TRUE}. When \code{FALSE}, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when \code{FALSE}, we assume that \code{S} specifies a desired between-factor
+connection probability, and back-transform this \code{S} to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.}
+
+\item{allow_self_loops}{Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to \code{TRUE}. When \code{FALSE}, sampling proceeds allowing
+self-loops, and these are then removed after the fact.}
 }
 \value{
 An \code{undirected_sbm} S3 object, which is a subclass of the
-\code{\link[=dcsbm]{dcsbm()}} object, with one additional field.
-\itemize{
-\item \code{edge_distribution}: Either "poisson" or "bernoulli".
-}
+\code{\link[=dcsbm]{dcsbm()}} object.
 }
 \description{
 To specify a stochastic blockmodel, you must specify
 the number of nodes (via \code{n}), the mixing matrix (via \code{k} or \code{B}),
 and the relative block probabilites (optional, via \code{pi}).
-We provide sane defaults for most of these options to enable
+We provide defaults for most of these options to enable
 rapid exploration, or you can invest the effort
 for more control over the model parameters. We \strong{strongly recommend}
 setting the \code{expected_degree} or \code{expected_density} argument
@@ -101,8 +107,8 @@ lazy_sbm
 bernoulli_sbm <- sbm(
   n = 5000,
   k = 300,
-  edge_distribution = "bernoulli",
-  expected_degree = 80
+  poisson_edges = FALSE,
+  expected_degree = 8
 )
 
 bernoulli_sbm
@@ -119,11 +125,17 @@ sign(A)
 \seealso{
 Other stochastic block models: 
 \code{\link{dcsbm}()},
+\code{\link{directed_dcsbm}()},
+\code{\link{mmsbm}()},
+\code{\link{overlapping_sbm}()},
 \code{\link{planted_partition}()}
 
 Other undirected graphs: 
+\code{\link{chung_lu}()},
 \code{\link{dcsbm}()},
 \code{\link{erdos_renyi}()},
+\code{\link{mmsbm}()},
+\code{\link{overlapping_sbm}()},
 \code{\link{planted_partition}()}
 }
 \concept{stochastic block models}

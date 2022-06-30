@@ -51,7 +51,7 @@ validate_undirected_planted_partition <- function(x) {
 #' the number of nodes (via `n`), the mixing matrix (optional, either via
 #' `within_block/between_block` or `a/b`),
 #' and the relative block probabilites (optional, via `pi`).
-#' We provide sane defaults for most of these options to enable
+#' We provide defaults for most of these options to enable
 #' rapid exploration, or you can invest the effort
 #' for more control over the model parameters. We **strongly recommend**
 #' setting the `expected_degree` or `expected_density` argument
@@ -83,6 +83,7 @@ validate_undirected_planted_partition <- function(x) {
 #'
 #' @inherit sbm params details references
 #' @inheritDotParams undirected_factor_model expected_degree expected_density
+#' @inheritParams undirected_factor_model
 #'
 #' @return An `undirected_planted_partition` S3 object, which is a subclass
 #'   of the [sbm()] object, with additional fields:
@@ -128,8 +129,9 @@ planted_partition <- function(
   a = NULL,
   b = NULL,
   pi = rep(1 / k, k),
-  edge_distribution = c("poisson", "bernoulli"),
-  sort_nodes = TRUE) {
+  sort_nodes = TRUE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE) {
 
   if (is.null(within_block)) {
     within_block <- a / n
@@ -149,8 +151,8 @@ planted_partition <- function(
     ...,
     pi = pi,
     sort_nodes = sort_nodes,
-    edge_distribution = edge_distribution,
-    # subclass = "undirected_planted_partition"  # temporary hack
+    poisson_edges = poisson_edges,
+    allow_self_loops = allow_self_loops
   )
 
   pp$within_block <- within_block
@@ -177,11 +179,13 @@ print.undirected_planted_partition <- function(x, ...) {
   cat("Between block edge probability:", dim_and_class(x$between_block), "\n")
   cat("Block memberships (z):", dim_and_class(x$z), "\n")
   cat("Block probabilities (pi):", dim_and_class(x$pi), "\n")
-  cat(glue("Edge distribution: {x$edge_distribution}\n\n", .trim = FALSE))
 
   cat("Factor model parameterization:\n\n")
   cat("X:", dim_and_class(x$X), "\n")
   cat("S:", dim_and_class(x$S), "\n\n")
+
+  cat("Poisson edges:", as.character(x$poisson_edges), "\n")
+  cat("Allow self loops:", as.character(x$allow_self_loops), "\n\n")
 
   cat(glue("Expected edges: {round(expected_edges(x))}\n", .trim = FALSE))
   cat(glue("Expected degree: {round(expected_degree(x), 1)}\n", .trim = FALSE))

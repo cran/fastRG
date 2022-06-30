@@ -56,6 +56,13 @@ validate_undirected_dcsbm <- function(x) {
     )
   }
 
+  if (min(values$S) < 0) {
+    stop(
+      "All elements of `B` must be non-negative.",
+      call. = FALSE
+    )
+  }
+
   x
 }
 
@@ -64,7 +71,7 @@ validate_undirected_dcsbm <- function(x) {
 #' To specify a degree-corrected stochastic blockmodel, you must specify
 #' the degree-heterogeneity parameters (via `n` or `theta`),
 #' the mixing matrix (via `k` or `B`), and the relative block
-#' probabilites (optional, via `pi`). We provide sane defaults for most of these
+#' probabilities (optional, via `pi`). We provide defaults for most of these
 #' options to enable rapid exploration, or you can invest the effort
 #' for more control over the model parameters. We **strongly recommend**
 #' setting the `expected_degree` or `expected_density` argument
@@ -98,7 +105,7 @@ validate_undirected_dcsbm <- function(x) {
 #'
 #' @param B (mixing matrix) A `k` by `k` matrix of block connection
 #'   probabilities. The probability that a node in block `i` connects
-#'   to a node in community `j` is `Poisson(B[i, j])`. Must be square
+#'   to a node in community `j` is `Poisson(B[i, j])`. Must be
 #'   a square matrix. `matrix` and `Matrix` objects are both
 #'   acceptable. If `B` is not symmetric, it will be
 #'   symmetrized via the update `B := B + t(B)`. Defaults to `NULL`.
@@ -111,10 +118,16 @@ validate_undirected_dcsbm <- function(x) {
 #'   `rep(1 / k, k)`, or a balanced blocks.
 #'
 #' @param sort_nodes Logical indicating whether or not to sort the nodes
-#'   so that they are grouped by block. Useful for plotting.
+#'   so that they are grouped by block and by `theta`. Useful for plotting.
 #'   Defaults to `TRUE`.
 #'
+#' @param force_identifiability Logical indicating whether or not to
+#'   normalize `theta` such that it sums to one within each block. Defaults
+#'   to `FALSE`, since this behavior can be surprise when `theta` is set
+#'   to a vector of all ones to recover the DC-SBM case.
+#'
 #' @inheritDotParams undirected_factor_model expected_degree expected_density
+#' @inheritParams undirected_factor_model
 #'
 #' @return An `undirected_dcsbm` S3 object, a subclass of the
 #'   [undirected_factor_model()] with the following additional
@@ -142,13 +155,13 @@ validate_undirected_dcsbm <- function(x) {
 #' # Generative Model
 #'
 #' There are two levels of randomness in a degree-corrected
-#' stochastic blockmodel. First, we randomly chosen a block
+#' stochastic blockmodel. First, we randomly chose a block
 #' membership for each node in the blockmodel. This is
 #' handled by `dcsbm()`. Then, given these block memberships,
 #' we randomly sample edges between nodes. This second
 #' operation is handled by [sample_edgelist()],
 #' [sample_sparse()], [sample_igraph()] and
-#' [sample_tidygraph()], depending your desirable
+#' [sample_tidygraph()], depending depending on your desired
 #' graph representation.
 #'
 #' ## Block memberships
@@ -236,7 +249,10 @@ dcsbm <- function(
   k = NULL, B = NULL,
   ...,
   pi = rep(1 / k, k),
-  sort_nodes = TRUE) {
+  sort_nodes = TRUE,
+  force_identifiability = FALSE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE) {
 
   ### degree heterogeneity parameters
 
@@ -275,7 +291,7 @@ dcsbm <- function(
       "in the future. Explicitly set `B` for reproducible results."
     )
 
-    B <- Matrix(data = stats::runif(k * k), nrow = k, ncol = k)
+    B <- matrix(data = stats::runif(k * k), nrow = k, ncol = k)
 
   } else if (is.null(k)) {
 
@@ -298,8 +314,11 @@ dcsbm <- function(
 
   # order mixing matrix by expected group size
 
-  B <- B[order(pi), ]
-  B <- B[, order(pi)]
+  if (k > 1) {
+    B <- B[order(pi), ]
+    B <- B[, order(pi)]
+  }
+
   pi <- sort(pi / sum(pi))
 
   # sample block memberships
@@ -311,19 +330,28 @@ dcsbm <- function(
     z <- sort(z)
   }
 
-  X <- sparse.model.matrix(~z + 0)
+  if (k > 1) {
+    X <- sparse.model.matrix(~z + 0)
+  } else {
+    X <- Matrix(1, nrow = n, ncol = 1)
+  }
 
-  if (sort_nodes) {
-
-    # sort by degree within each block
-    ct <- c(0, cumsum(table(z)))
-
-    for (i in 1:k) {
-      theta[(ct[i] + 1):ct[i + 1]] <- -sort(-theta[(ct[i] + 1):ct[i + 1]])
-    }
+  if (force_identifiability) {
+    theta <- l1_normalize_within(theta, z)
   }
 
   X@x <- theta
+
+  if (sort_nodes) {
+    # note that X and z indexing must match
+    X <- sort_by_all_columns(X)
+  }
+
+  if (k > 1) {
+    theta <- X@x
+  } else {
+    theta <- sort(theta, decreasing = TRUE)
+  }
 
   dcsbm <- new_undirected_dcsbm(
     X = X,
@@ -332,6 +360,8 @@ dcsbm <- function(
     z = z,
     pi = pi,
     sorted = sort_nodes,
+    poisson_edges = poisson_edges,
+    allow_self_loops = allow_self_loops,
     ...
   )
 
@@ -358,6 +388,9 @@ print.undirected_dcsbm <- function(x, ...) {
   cat("Factor model parameterization:\n\n")
   cat("X:", dim_and_class(x$X), "\n")
   cat("S:", dim_and_class(x$S), "\n\n")
+
+  cat("Poisson edges:", as.character(x$poisson_edges), "\n")
+  cat("Allow self loops:", as.character(x$allow_self_loops), "\n\n")
 
   cat(glue("Expected edges: {round(expected_edges(x))}\n", .trim = FALSE))
   cat(glue("Expected degree: {round(expected_degree(x), 1)}\n", .trim = FALSE))

@@ -10,24 +10,14 @@ validate_undirected_sbm <- function(x) {
     )
   }
 
-  if (!all(values$theta == 1)) {
-    stop(
-      "`theta` must equal one for all nodes in SBMs without degree ",
-      "correction.",
-      call. = FALSE
-    )
-  }
+  distinct_theta_by_block <- sapply(
+    split(values$theta, values$z),
+    function(x) length(unique(x))
+  )
 
-  if (!(values$edge_distribution %in% c("poisson", "bernoulli"))) {
+  if (any(distinct_theta_by_block) > 1) {
     stop(
-      "`edge_distribution` must be either \"poisson\" or \"bernoulli\".",
-      call. = FALSE
-    )
-  }
-
-  if (values$edge_distribution == "bernoulli" && max(values$S) > 1) {
-    stop(
-      "Elements of `B` must be not exceed 1 for bernoulli SBMs.",
+      "`theta` must be equal for all nodes in a given block.",
       call. = FALSE
     )
   }
@@ -40,7 +30,7 @@ validate_undirected_sbm <- function(x) {
 #' To specify a stochastic blockmodel, you must specify
 #' the number of nodes (via `n`), the mixing matrix (via `k` or `B`),
 #' and the relative block probabilites (optional, via `pi`).
-#' We provide sane defaults for most of these options to enable
+#' We provide defaults for most of these options to enable
 #' rapid exploration, or you can invest the effort
 #' for more control over the model parameters. We **strongly recommend**
 #' setting the `expected_degree` or `expected_density` argument
@@ -50,20 +40,11 @@ validate_undirected_sbm <- function(x) {
 #' @param n The number of nodes in the network. Must be
 #'   a positive integer. This argument is required.
 #'
-#' @param edge_distribution Either `"poisson"` or `"bernoulli"`. The
-#'   default is `"poisson"`, in which case the SBM can be a
-#'   multigraph, i.e. multiple edges between the same two nodes
-#'   are allowed. If `edge_distribution == "bernoulli"` only a
-#'   single edge is allowed between any pair of nodes. See Section 2.3
-#'   of Rohe et al (2017) for details.
-#'
 #' @inherit dcsbm params details
 #' @inheritDotParams undirected_factor_model expected_degree expected_density
 #'
 #' @return An `undirected_sbm` S3 object, which is a subclass of the
-#'   [dcsbm()] object, with one additional field.
-#'
-#'   - `edge_distribution`: Either "poisson" or "bernoulli".
+#'   [dcsbm()] object.
 #'
 #' @export
 #' @family stochastic block models
@@ -89,8 +70,8 @@ validate_undirected_sbm <- function(x) {
 #' bernoulli_sbm <- sbm(
 #'   n = 5000,
 #'   k = 300,
-#'   edge_distribution = "bernoulli",
-#'   expected_degree = 80
+#'   poisson_edges = FALSE,
+#'   expected_degree = 8
 #' )
 #'
 #' bernoulli_sbm
@@ -108,10 +89,9 @@ sbm <- function(
   k = NULL, B = NULL,
   ...,
   pi = rep(1 / k, k),
-  edge_distribution = c("poisson", "bernoulli"),
-  sort_nodes = TRUE) {
-
-  edge_distribution <- match.arg(edge_distribution)
+  sort_nodes = TRUE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE) {
 
   sbm <- dcsbm(
     n = n,
@@ -121,20 +101,11 @@ sbm <- function(
     ...,
     pi = pi,
     sort_nodes = sort_nodes,
+    force_identifiability = FALSE,
+    poisson_edges = TRUE,
+    allow_self_loops = TRUE,
     subclass = "undirected_sbm"
   )
-
-  sbm$edge_distribution <- edge_distribution
-
-  if (edge_distribution == "bernoulli") {
-
-    # we're still sampling from a Poisson distribution, but S has been
-    # specified as Bernoulli edges probabilities. convert these edges
-    # probabilities such that we can feed them into a Poisson sampling
-    # procedure
-
-    sbm$S <- -log(1 - sbm$S)
-  }
 
   validate_undirected_sbm(sbm)
 }
@@ -160,71 +131,10 @@ print.undirected_sbm <- function(x, ...) {
   cat("X:", dim_and_class(x$X), "\n")
   cat("S:", dim_and_class(x$S), "\n\n")
 
+  cat("Poisson edges:", as.character(x$poisson_edges), "\n")
+  cat("Allow self loops:", as.character(x$allow_self_loops), "\n\n")
+
   cat(glue("Expected edges: {round(expected_edges(x))}\n", .trim = FALSE))
   cat(glue("Expected degree: {round(expected_degree(x), 1)}\n", .trim = FALSE))
   cat(glue("Expected density: {round(expected_density(x), 5)}", .trim = FALSE))
-}
-
-
-# dispatch hacks to respect type of edges---------------------------------------
-
-#' @rdname sample_edgelist
-#' @export
-sample_edgelist.undirected_sbm <- function(
-  factor_model,
-  ...,
-  poisson_edges = TRUE,
-  allow_self_loops = TRUE) {
-
-  poisson_edges <- factor_model$edge_distribution == "poisson"
-
-  NextMethod()
-
-  NextMethod("sample_edgelist", factor_model, ..., poisson_edges = FALSE)
-}
-
-#' @rdname sample_sparse
-#' @export
-sample_sparse.undirected_erdos_renyi <- function(
-  factor_model,
-  ...,
-  poisson_edges = FALSE,
-  allow_self_loops = TRUE) {
-
-  NextMethod("sample_sparse", factor_model, ..., poisson_edges = FALSE)
-}
-
-#' @rdname sample_igraph
-#' @export
-sample_igraph.undirected_erdos_renyi <- function(
-  factor_model,
-  ...,
-  poisson_edges = FALSE,
-  allow_self_loops = TRUE) {
-
-  NextMethod("sample_igraph", factor_model, ..., poisson_edges = FALSE)
-}
-
-#' @rdname sample_tidygraph
-#' @export
-sample_tidygraph.undirected_erdos_renyi <- function(
-  factor_model,
-  ...,
-  poisson_edges = FALSE,
-  allow_self_loops = TRUE) {
-
-  NextMethod("sample_tidygraph", factor_model, ..., poisson_edges = FALSE)
-}
-
-
-#' @rdname sample_edgelist
-#' @export
-sample_edgelist.undirected_sbm <- function(
-  factor_model,
-  ...,
-  allow_self_loops = TRUE) {
-
-  poisson_edges <- factor_model$edge_distribution == "poisson"
-
-  NextMethod()
 }

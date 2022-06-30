@@ -11,7 +11,10 @@ dcsbm(
   B = NULL,
   ...,
   pi = rep(1/k, k),
-  sort_nodes = TRUE
+  sort_nodes = TRUE,
+  force_identifiability = FALSE,
+  poisson_edges = TRUE,
+  allow_self_loops = TRUE
 )
 }
 \arguments{
@@ -42,7 +45,7 @@ or \code{B}, but not both.}
 
 \item{B}{(mixing matrix) A \code{k} by \code{k} matrix of block connection
 probabilities. The probability that a node in block \code{i} connects
-to a node in community \code{j} is \code{Poisson(B[i, j])}. Must be square
+to a node in community \code{j} is \code{Poisson(B[i, j])}. Must be
 a square matrix. \code{matrix} and \code{Matrix} objects are both
 acceptable. If \code{B} is not symmetric, it will be
 symmetrized via the update \code{B := B + t(B)}. Defaults to \code{NULL}.
@@ -68,8 +71,28 @@ Must match the dimensions of \code{B} or \code{k}. Defaults to
 \code{rep(1 / k, k)}, or a balanced blocks.}
 
 \item{sort_nodes}{Logical indicating whether or not to sort the nodes
-so that they are grouped by block. Useful for plotting.
+so that they are grouped by block and by \code{theta}. Useful for plotting.
 Defaults to \code{TRUE}.}
+
+\item{force_identifiability}{Logical indicating whether or not to
+normalize \code{theta} such that it sums to one within each block. Defaults
+to \code{FALSE}, since this behavior can be surprise when \code{theta} is set
+to a vector of all ones to recover the DC-SBM case.}
+
+\item{poisson_edges}{Logical indicating whether or not
+multiple edges are allowed to form between a pair of
+nodes. Defaults to \code{TRUE}. When \code{FALSE}, sampling proceeds
+as usual, and duplicate edges are removed afterwards. Further,
+when \code{FALSE}, we assume that \code{S} specifies a desired between-factor
+connection probability, and back-transform this \code{S} to the
+appropriate Poisson intensity parameter to approximate Bernoulli
+factor connection probabilities. See Section 2.3 of Rohe et al. (2017)
+for some additional details.}
+
+\item{allow_self_loops}{Logical indicating whether or not
+nodes should be allowed to form edges with themselves.
+Defaults to \code{TRUE}. When \code{FALSE}, sampling proceeds allowing
+self-loops, and these are then removed after the fact.}
 }
 \value{
 An \code{undirected_dcsbm} S3 object, a subclass of the
@@ -91,7 +114,7 @@ within each block.
 To specify a degree-corrected stochastic blockmodel, you must specify
 the degree-heterogeneity parameters (via \code{n} or \code{theta}),
 the mixing matrix (via \code{k} or \code{B}), and the relative block
-probabilites (optional, via \code{pi}). We provide sane defaults for most of these
+probabilities (optional, via \code{pi}). We provide defaults for most of these
 options to enable rapid exploration, or you can invest the effort
 for more control over the model parameters. We \strong{strongly recommend}
 setting the \code{expected_degree} or \code{expected_density} argument
@@ -100,13 +123,13 @@ sampling large, dense graphs.
 }
 \section{Generative Model}{
 There are two levels of randomness in a degree-corrected
-stochastic blockmodel. First, we randomly chosen a block
+stochastic blockmodel. First, we randomly chose a block
 membership for each node in the blockmodel. This is
 handled by \code{dcsbm()}. Then, given these block memberships,
 we randomly sample edges between nodes. This second
 operation is handled by \code{\link[=sample_edgelist]{sample_edgelist()}},
 \code{\link[=sample_sparse]{sample_sparse()}}, \code{\link[=sample_igraph]{sample_igraph()}} and
-\code{\link[=sample_tidygraph]{sample_tidygraph()}}, depending your desirable
+\code{\link[=sample_tidygraph]{sample_tidygraph()}}, depending depending on your desired
 graph representation.
 \subsection{Block memberships}{
 
@@ -195,11 +218,17 @@ population_eigs <- eigs_sym(custom_dcsbm)
 }
 \seealso{
 Other stochastic block models: 
+\code{\link{directed_dcsbm}()},
+\code{\link{mmsbm}()},
+\code{\link{overlapping_sbm}()},
 \code{\link{planted_partition}()},
 \code{\link{sbm}()}
 
 Other undirected graphs: 
+\code{\link{chung_lu}()},
 \code{\link{erdos_renyi}()},
+\code{\link{mmsbm}()},
+\code{\link{overlapping_sbm}()},
 \code{\link{planted_partition}()},
 \code{\link{sbm}()}
 }
