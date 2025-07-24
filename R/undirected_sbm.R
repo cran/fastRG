@@ -1,6 +1,4 @@
-
 validate_undirected_sbm <- function(x) {
-
   values <- unclass(x)
 
   if (!inherits(x, "undirected_sbm")) {
@@ -60,7 +58,7 @@ validate_undirected_sbm <- function(x) {
 #'
 #' set.seed(27)
 #'
-#' lazy_sbm <- sbm(n = 1000, k = 5, expected_density = 0.01)
+#' lazy_sbm <- sbm(n = 100, k = 5, expected_density = 0.01)
 #' lazy_sbm
 #'
 #' # by default we get a multigraph (i.e. multiple edges are
@@ -68,8 +66,8 @@ validate_undirected_sbm <- function(x) {
 #' # will with an adjacency matrix with only zeroes and ones
 #'
 #' bernoulli_sbm <- sbm(
-#'   n = 5000,
-#'   k = 300,
+#'   n = 500,
+#'   k = 30,
 #'   poisson_edges = FALSE,
 #'   expected_degree = 8
 #' )
@@ -85,14 +83,13 @@ validate_undirected_sbm <- function(x) {
 #' sign(A)
 #'
 sbm <- function(
-  n,
-  k = NULL, B = NULL,
-  ...,
-  pi = rep(1 / k, k),
-  sort_nodes = TRUE,
-  poisson_edges = TRUE,
-  allow_self_loops = TRUE) {
-
+    n,
+    k = NULL, B = NULL,
+    ...,
+    pi = rep(1 / k, k),
+    sort_nodes = TRUE,
+    poisson_edges = TRUE,
+    allow_self_loops = TRUE) {
   sbm <- dcsbm(
     n = n,
     theta = rep(1, n),
@@ -113,7 +110,6 @@ sbm <- function(
 #' @method print undirected_sbm
 #' @export
 print.undirected_sbm <- function(x, ...) {
-
   cat(glue("Undirected Stochastic Blockmodel\n", .trim = FALSE))
   cat(glue("--------------------------------\n\n", .trim = FALSE))
 

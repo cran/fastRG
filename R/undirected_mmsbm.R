@@ -1,5 +1,4 @@
 validate_undirected_mmsbm <- function(x) {
-
   values <- unclass(x)
 
   if (!is.numeric(values$theta)) {
@@ -43,7 +42,6 @@ new_undirected_mmsbm <- function(
     sorted,
     ...,
     subclass = character()) {
-
   subclass <- c(subclass, "undirected_mmsbm")
   mmsbm <- undirected_factor_model(X, S, ..., subclass = subclass)
   mmsbm$theta <- theta
@@ -141,7 +139,7 @@ new_undirected_mmsbm <- function(
 #'
 #' set.seed(27)
 #'
-#' lazy_mmsbm <- mmsbm(n = 1000, k = 5, expected_density = 0.01)
+#' lazy_mmsbm <- mmsbm(n = 100, k = 5, expected_density = 0.01)
 #' lazy_mmsbm
 #'
 #' # sometimes you gotta let the world burn and
@@ -155,7 +153,7 @@ new_undirected_mmsbm <- function(
 #' # than using randomly generated defaults
 #'
 #' k <- 5
-#' n <- 1000
+#' n <- 100
 #' B <- matrix(stats::runif(k * k), nrow = k, ncol = k)
 #'
 #' theta <- round(stats::rlnorm(n, 2))
@@ -191,13 +189,11 @@ mmsbm <- function(
     force_pure = TRUE,
     poisson_edges = TRUE,
     allow_self_loops = TRUE) {
-
   ### degree heterogeneity parameters
 
   if (is.null(n) && is.null(theta)) {
     stop("Must specify either `n` or `theta`.", call. = FALSE)
   } else if (is.null(theta)) {
-
     if (n < 1) {
       stop("`n` must be a positive integer.", call. = FALSE)
     }
@@ -218,7 +214,6 @@ mmsbm <- function(
   if (is.null(k) && is.null(B)) {
     stop("Must specify either `k` or `B`.", call. = FALSE)
   } else if (is.null(B)) {
-
     if (k < 1) {
       stop("`k` must be a positive integer.", call. = FALSE)
     }
@@ -230,9 +225,7 @@ mmsbm <- function(
     )
 
     B <- matrix(data = stats::runif(k * k), nrow = k, ncol = k)
-
   } else if (is.null(k)) {
-
     if (nrow(B) != ncol(B)) {
       stop("`B` must be a square matrix.", call. = FALSE)
     }
@@ -293,7 +286,6 @@ mmsbm <- function(
 #' @method print undirected_mmsbm
 #' @export
 print.undirected_mmsbm <- function(x, ...) {
-
   cat(glue("Undirected Degree-Corrected Mixed Membership Stochastic Blockmodel\n", .trim = FALSE))
   cat(glue("------------------------------------------------------------------\n\n", .trim = FALSE))
 

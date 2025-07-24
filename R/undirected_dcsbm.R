@@ -1,11 +1,11 @@
 new_undirected_dcsbm <- function(
-  X, S,
-  theta,
-  z,
-  pi,
-  sorted,
-  ...,
-  subclass = character()) {
+    X, S,
+    theta,
+    z,
+    pi,
+    sorted,
+    ...,
+    subclass = character()) {
   subclass <- c(subclass, "undirected_dcsbm")
   dcsbm <- undirected_factor_model(X, S, ..., subclass = subclass)
   dcsbm$theta <- theta
@@ -16,7 +16,6 @@ new_undirected_dcsbm <- function(
 }
 
 validate_undirected_dcsbm <- function(x) {
-
   values <- unclass(x)
 
   if (!is.factor(values$z)) {
@@ -51,8 +50,8 @@ validate_undirected_dcsbm <- function(x) {
 
   if (length(levels(values$z)) != values$k) {
     stop(
-    "The number of levels of `z` must match the rank of the model.",
-    call. = FALSE
+      "The number of levels of `z` must match the rank of the model.",
+      call. = FALSE
     )
   }
 
@@ -127,7 +126,7 @@ validate_undirected_dcsbm <- function(x) {
 #' @param force_identifiability Logical indicating whether or not to
 #'   normalize `theta` such that it sums to one within each block. Defaults
 #'   to `FALSE`, since this behavior can be surprise when `theta` is set
-#'   to a vector of all ones to recover the DC-SBM case.
+#'   to a vector of all ones to recover the SBM case.
 #'
 #' @inheritDotParams undirected_factor_model expected_degree expected_density
 #' @inheritParams undirected_factor_model
@@ -207,13 +206,13 @@ validate_undirected_dcsbm <- function(x) {
 #'
 #' set.seed(27)
 #'
-#' lazy_dcsbm <- dcsbm(n = 1000, k = 5, expected_density = 0.01)
+#' lazy_dcsbm <- dcsbm(n = 100, k = 5, expected_density = 0.01)
 #' lazy_dcsbm
 #'
 #' # sometimes you gotta let the world burn and
 #' # sample a wildly dense graph
 #'
-#' dense_lazy_dcsbm <- dcsbm(n = 500, k = 3, expected_density = 0.8)
+#' dense_lazy_dcsbm <- dcsbm(n = 50, k = 3, expected_density = 0.8)
 #' dense_lazy_dcsbm
 #'
 #' # explicitly setting the degree heterogeneity parameter,
@@ -221,7 +220,7 @@ validate_undirected_dcsbm <- function(x) {
 #' # than using randomly generated defaults
 #'
 #' k <- 5
-#' n <- 1000
+#' n <- 100
 #' B <- matrix(stats::runif(k * k), nrow = k, ncol = k)
 #'
 #' theta <- round(stats::rlnorm(n, 2))
@@ -248,21 +247,19 @@ validate_undirected_dcsbm <- function(x) {
 #' population_eigs <- eigs_sym(custom_dcsbm)
 #'
 dcsbm <- function(
-  n = NULL, theta = NULL,
-  k = NULL, B = NULL,
-  ...,
-  pi = rep(1 / k, k),
-  sort_nodes = TRUE,
-  force_identifiability = FALSE,
-  poisson_edges = TRUE,
-  allow_self_loops = TRUE) {
-
+    n = NULL, theta = NULL,
+    k = NULL, B = NULL,
+    ...,
+    pi = rep(1 / k, k),
+    sort_nodes = TRUE,
+    force_identifiability = FALSE,
+    poisson_edges = TRUE,
+    allow_self_loops = TRUE) {
   ### degree heterogeneity parameters
 
   if (is.null(n) && is.null(theta)) {
     stop("Must specify either `n` or `theta`.", call. = FALSE)
   } else if (is.null(theta)) {
-
     if (n < 1) {
       stop("`n` must be a positive integer.", call. = FALSE)
     }
@@ -283,7 +280,6 @@ dcsbm <- function(
   if (is.null(k) && is.null(B)) {
     stop("Must specify either `k` or `B`.", call. = FALSE)
   } else if (is.null(B)) {
-
     if (k < 1) {
       stop("`k` must be a positive integer.", call. = FALSE)
     }
@@ -295,9 +291,7 @@ dcsbm <- function(
     )
 
     B <- matrix(data = stats::runif(k * k), nrow = k, ncol = k)
-
   } else if (is.null(k)) {
-
     if (nrow(B) != ncol(B)) {
       stop("`B` must be a square matrix.", call. = FALSE)
     }
@@ -335,7 +329,7 @@ dcsbm <- function(
   }
 
   if (k > 1) {
-    X <- sparse.model.matrix(~z + 0)
+    X <- sparse.model.matrix(~ z + 0)
   } else {
     X <- Matrix(1, nrow = n, ncol = 1)
   }
@@ -375,7 +369,6 @@ dcsbm <- function(
 #' @method print undirected_dcsbm
 #' @export
 print.undirected_dcsbm <- function(x, ...) {
-
   cat(glue("Undirected Degree-Corrected Stochastic Blockmodel\n", .trim = FALSE))
   cat(glue("-------------------------------------------------\n\n", .trim = FALSE))
 

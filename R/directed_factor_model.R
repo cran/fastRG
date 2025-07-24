@@ -1,11 +1,10 @@
 new_directed_factor_model <- function(
-  X, S, Y,
-  poisson_edges,
-  allow_self_loops,
-  ...,
-  subclass = character()) {
-
-  ellipsis::check_dots_unnamed()
+    X, S, Y,
+    poisson_edges,
+    allow_self_loops,
+    ...,
+    subclass = character()) {
+  rlang::check_dots_unnamed()
 
   n <- nrow(X)
   k1 <- ncol(X)
@@ -29,7 +28,6 @@ new_directed_factor_model <- function(
 }
 
 validate_directed_factor_model <- function(x) {
-
   values <- unclass(x)
 
   if (any(values$X < 0) || any(values$S < 0) || any(values$Y < 0)) {
@@ -70,14 +68,14 @@ validate_directed_factor_model <- function(x) {
 #' of the stochastic blockmodels as undirected factor models
 #' *with lots of helpful input validation*.
 #'
-#' @param X A [matrix()] or [Matrix()] representing real-valued
+#' @param X A [matrix()] or [Matrix::Matrix()] representing real-valued
 #'   latent node positions encoding community structure of
 #'   incoming edges. Entries must be positive.
 #'
-#' @param S A [matrix()] or [Matrix()] mixing matrix. Entries
+#' @param S A [matrix()] or [Matrix::Matrix()] mixing matrix. Entries
 #'   must be positive.
 #'
-#' @param Y A [matrix()] or [Matrix()] representing real-valued
+#' @param Y A [matrix()] or [Matrix::Matrix()] representing real-valued
 #'   latent node positions encoding community structure of
 #'   outgoing edges. Entries must be positive.
 #'
@@ -116,11 +114,11 @@ validate_directed_factor_model <- function(x) {
 #' @return A `directed_factor_model` S3 class based on a list
 #'   with the following elements:
 #'
-#'   - `X`: The incoming latent positions as a [Matrix()] object.
+#'   - `X`: The incoming latent positions as a [Matrix::Matrix()] object.
 #'
-#'   - `S`: The mixing matrix as a [Matrix()] object.
+#'   - `S`: The mixing matrix as a [Matrix::Matrix()] object.
 #'
-#'   - `Y`: The outgoing latent positions as a [Matrix()] object.
+#'   - `Y`: The outgoing latent positions as a [Matrix::Matrix()] object.
 #'
 #'   - `n`: The number of nodes with incoming edges in the network.
 #'
@@ -144,12 +142,12 @@ validate_directed_factor_model <- function(x) {
 #'
 #' @examples
 #'
-#' n <- 10000
+#' n <- 1000
 #'
 #' k1 <- 5
 #' k2 <- 3
 #'
-#' d <- 5000
+#' d <- 500
 #'
 #' X <- matrix(rpois(n = n * k1, 1), nrow = n)
 #' S <- matrix(runif(n = k1 * k2, 0, .1), nrow = k1, ncol = k2)
@@ -162,14 +160,13 @@ validate_directed_factor_model <- function(x) {
 #' fm2
 #'
 directed_factor_model <- function(
-  X, S, Y,
-  ...,
-  expected_in_degree = NULL,
-  expected_out_degree = NULL,
-  expected_density = NULL,
-  poisson_edges = TRUE,
-  allow_self_loops = TRUE) {
-
+    X, S, Y,
+    ...,
+    expected_in_degree = NULL,
+    expected_out_degree = NULL,
+    expected_density = NULL,
+    poisson_edges = TRUE,
+    allow_self_loops = TRUE) {
   X <- Matrix(X)
   S <- Matrix(S)
   Y <- Matrix(Y)
@@ -196,7 +193,6 @@ directed_factor_model <- function(
   )
 
   if (!is.null(expected_in_degree)) {
-
     if (expected_in_degree <= 0) {
       stop(
         "`expected_in_degree` must be strictly greater than zero.",
@@ -208,7 +204,6 @@ directed_factor_model <- function(
   }
 
   if (!is.null(expected_out_degree)) {
-
     if (expected_out_degree <= 0) {
       stop(
         "`expected_out_degree` must be strictly greater than zero.",
@@ -220,7 +215,6 @@ directed_factor_model <- function(
   }
 
   if (!is.null(expected_density)) {
-
     if (expected_density <= 0 || 1 <= expected_density) {
       stop(
         "`expected_density` must be strictly between zero and one.",
@@ -234,7 +228,6 @@ directed_factor_model <- function(
   fm$S <- S
 
   if (!poisson_edges) {
-
     # when poisson_edges = FALSE, S is the desired Bernoulli edge probability.
     # we must
     # back-transform it to a Poisson parameterization of S. see section 2.3
@@ -255,17 +248,16 @@ directed_factor_model <- function(
 }
 
 dim_and_class <- function(x, ...) {
-
-  if (is.matrix(x) || inherits(x, "Matrix"))
+  if (is.matrix(x) || inherits(x, "Matrix")) {
     paste0(nrow(x), " x ", ncol(x), " [", class(x)[1], "]")
-  else
+  } else {
     paste0(length(x), " [", class(x)[1], "]")
+  }
 }
 
 #' @method print directed_factor_model
 #' @export
 print.directed_factor_model <- function(x, ...) {
-
   cat(glue("Directed Factor Model\n", .trim = FALSE))
   cat(glue("---------------------\n\n", .trim = FALSE))
 
@@ -289,4 +281,3 @@ print.directed_factor_model <- function(x, ...) {
     sep = "\n"
   )
 }
-

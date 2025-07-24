@@ -18,14 +18,14 @@
 #'
 #' ##### an undirected blockmodel example
 #'
-#' n <- 1000
+#' n <- 100
 #' pop <- n / 2
 #' a <- .1
 #' b <- .05
 #'
-#' B <- matrix(c(a,b,b,a), nrow = 2)
+#' B <- matrix(c(a, b, b, a), nrow = 2)
 #'
-#' b_model <- fastRG::sbm(n = n, k = 2, B = B, poisson_edges = FALSE)
+#' b_model <- sbm(n = n, k = 2, B = B, poisson_edges = FALSE)
 #'
 #' b_model
 #'
@@ -34,11 +34,11 @@
 #' # compare
 #' mean(rowSums(triu(A)))
 #'
-#' pop * a + pop * b  # analytical average degree
+#' pop * a + pop * b # analytical average degree
 #'
 #' ##### more generic examples
 #'
-#' n <- 10000
+#' n <- 1000
 #' k <- 5
 #'
 #' X <- matrix(rpois(n = n * k, 1), nrow = n)
@@ -50,8 +50,8 @@
 #' expected_degree(ufm)
 #' eigs_sym(ufm)
 #'
-#' n <- 10000
-#' d <- 1000
+#' n <- 1000
+#' d <- 100
 #'
 #' k1 <- 5
 #' k2 <- 3
@@ -69,13 +69,12 @@
 #' svds(dfm)
 #'
 expected_edges <- function(factor_model, ...) {
-  ellipsis::check_dots_empty()
+  rlang::check_dots_empty()
   UseMethod("expected_edges")
 }
 
 #' @export
 expected_edges.directed_factor_model <- function(factor_model, ...) {
-
   X <- factor_model$X
   S <- factor_model$S
   Y <- factor_model$Y
@@ -87,7 +86,6 @@ expected_edges.directed_factor_model <- function(factor_model, ...) {
 
 #' @export
 expected_edges.undirected_factor_model <- function(factor_model, ...) {
-
   X <- factor_model$X
   S <- factor_model$S
 
@@ -134,7 +132,6 @@ expected_degrees <- function(factor_model, ...) {
 
 #' @export
 expected_degrees.undirected_factor_model <- function(factor_model, ...) {
-
   # rowSums of E[A|X, S] = XSX' are XSX'1 for 1 a column vector of ones
   # want to avoid memory cost of instantiating all of E[A|X, S], which is
   # typically large and dense
@@ -161,7 +158,6 @@ expected_out_degree.directed_factor_model <- function(factor_model, ...) {
 
 #' @export
 expected_density.directed_factor_model <- function(factor_model, ...) {
-
   n <- factor_model$n
   d <- factor_model$d
 

@@ -53,12 +53,17 @@ plot_expectation <- function(model) {
 #' @import ggplot2
 #' @export
 plot_dense_matrix <- function(A, ...) {
+  # don't preserve rownames because rownames and colnames get coerced to
+  # indices and this can lead to type errors
+  rownames(A) <- 1:nrow(A)
+  colnames(A) <- 1:ncol(A)
+
   long <- dplyr::as_tibble(A, rownames = "row")
   long <- tidyr::gather(long, col, value, -row)
   long <- dplyr::mutate_all(long, as.numeric)
 
   ggplot(long, aes(x = col, y = row, fill = value)) +
-    geom_raster() +
+    geom_tile() +
     scale_y_reverse() +
     theme_minimal() +
     labs(
@@ -70,7 +75,6 @@ plot_dense_matrix <- function(A, ...) {
 #' @rdname plot_expectation
 #' @export
 plot_sparse_matrix <- function(A) {
-
   stopifnot(inherits(A, "sparseMatrix"))
 
   A <- methods::as(A, "CsparseMatrix")

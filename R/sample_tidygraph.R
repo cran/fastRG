@@ -25,18 +25,10 @@
 #' @family samplers
 #'
 sample_tidygraph <- function(
-  factor_model,
-  ...) {
-
-  ellipsis::check_dots_unnamed()
-
-  if (!(requireNamespace("tidygraph", quietly = TRUE))) {
-    stop(
-      "Must install `tidygraph` package to return graphs as `tidygraph` ",
-      "objects",
-      call. = FALSE
-    )
-  }
+    factor_model,
+    ...) {
+  rlang::check_dots_unnamed()
+  rlang::check_installed("igraph", "to return graphs as `tidygraph` objects.")
 
   UseMethod("sample_tidygraph")
 }
@@ -44,8 +36,8 @@ sample_tidygraph <- function(
 #' @rdname sample_tidygraph
 #' @export
 sample_tidygraph.undirected_factor_model <- function(
-  factor_model,
-  ...) {
+    factor_model,
+    ...) {
   ig <- sample_igraph(factor_model, ...)
   tidygraph::as_tbl_graph(ig, directed = FALSE)
 }
@@ -53,8 +45,8 @@ sample_tidygraph.undirected_factor_model <- function(
 #' @rdname sample_tidygraph
 #' @export
 sample_tidygraph.directed_factor_model <- function(
-  factor_model,
-  ...) {
+    factor_model,
+    ...) {
   ig <- sample_igraph(factor_model, ...)
   tidygraph::as_tbl_graph(ig, directed = TRUE)
 }
