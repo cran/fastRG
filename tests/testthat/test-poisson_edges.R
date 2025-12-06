@@ -13,8 +13,10 @@ test_that("undirected graphs poisson_edges = FALSE", {
   S <- matrix(runif(n = k * k, 0, .1), nrow = k)
 
   ufm <- undirected_factor_model(
-    X, S,
-    expected_density = 0.1, poisson_edges = FALSE
+    X,
+    S,
+    expected_density = 0.1,
+    poisson_edges = FALSE
   )
 
   edgelist <- sample_edgelist(ufm)
@@ -30,12 +32,12 @@ test_that("undirected graphs poisson_edges = FALSE", {
   expect_equal(max(A), 1)
 
   igraph <- sample_igraph(ufm)
-  expect_equal(max(get.adjacency(igraph)), 1)
+  expect_equal(max(as_adjacency_matrix(igraph)), 1)
 
   ### sampling graphs as tidygraph graphs ---------------
 
   tbl_graph <- sample_tidygraph(ufm)
-  expect_equal(max(get.adjacency(tbl_graph)), 1)
+  expect_equal(max(as_adjacency_matrix(tbl_graph)), 1)
 })
 
 test_that("directed graphs poisson_edges = FALSE", {
@@ -54,7 +56,13 @@ test_that("directed graphs poisson_edges = FALSE", {
   S <- matrix(runif(n = k1 * k2, 0, .1), nrow = k1, ncol = k2)
   Y <- matrix(rexp(n = k2 * d, 1), nrow = d)
 
-  fm <- directed_factor_model(X, S, Y, expected_density = 0.01, poisson_edges = FALSE)
+  fm <- directed_factor_model(
+    X,
+    S,
+    Y,
+    expected_density = 0.01,
+    poisson_edges = FALSE
+  )
 
   edgelist <- sample_edgelist(fm)
 
@@ -69,10 +77,10 @@ test_that("directed graphs poisson_edges = FALSE", {
   expect_equal(max(A), 1)
 
   igraph <- sample_igraph(fm)
-  expect_equal(max(get.adjacency(igraph)), 1)
+  expect_equal(max(as_adjacency_matrix(igraph)), 1)
 
   ### sampling graphs as tidygraph graphs ---------------
 
   tbl_graph <- sample_tidygraph(fm)
-  expect_equal(max(get.adjacency(tbl_graph)), 1)
+  expect_equal(max(as_adjacency_matrix(tbl_graph)), 1)
 })

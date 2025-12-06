@@ -1,6 +1,6 @@
 Package: fastRG
 Title: Sample Generalized Random Dot Product Graphs in Linear Time
-Version: 0.3.3
+Version: 0.4.0
 Authors@R: c(
     person("Alex", "Hayes", , "alexpghayes@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-4985-5160")),
@@ -26,12 +26,14 @@ BugReports: https://github.com/RoheLab/fastRG/issues
 Depends: Matrix
 Imports: dplyr, ggplot2, glue, igraph, methods, rlang (>= 1.0.0),
         RSpectra, stats, tibble, tidygraph, tidyr
-Suggests: covr, knitr, magrittr, rmarkdown, testthat (>= 3.0.0)
+Suggests: covr, irlba, knitr, magrittr, purrr, rmarkdown, scales,
+        testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2025-07-24 15:02:11 UTC; alex
+Packaged: 2025-12-05 20:20:25 UTC; alex
 Author: Alex Hayes [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0002-4985-5160>),
   Karl Rohe [aut, cph],
@@ -40,4 +42,4 @@ Author: Alex Hayes [aut, cre, cph] (ORCID:
   Norbert Binkiewicz [aut]
 Maintainer: Alex Hayes <alexpghayes@gmail.com>
 Repository: CRAN
-Date/Publication: 2025-07-24 15:30:07 UTC
+Date/Publication: 2025-12-06 15:20:02 UTC
